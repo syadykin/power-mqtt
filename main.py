@@ -1,3 +1,4 @@
+import machine
 import time
 
 # sleep delay is necessary for correct init
@@ -16,6 +17,14 @@ from settings import *
 config['server'] = MQTT_HOST
 config['ssid'] = WIFI_SSID
 config['wifi_pw'] = WIFI_PASSWORD
+config["queue_len"] = 1
+
+def log(file, e):
+    err = open(file, 'a')
+    err.write(repr(e))
+    err.write("\n\n")
+    err.close()
+
 
 pylontech = Pylontech(
     uart_id=PYLONTECH_UART,
@@ -33,27 +42,32 @@ async def print_mqtt(client, prefix, value):
         await client.publish(name, val)
 
 async def read_must(client):
+    crc_errors = 0
+
     while True:
         try:
             values = must.get_values(MUST_ADDR)
             await print_mqtt(client, MUST_PREFIX, values)
-        except OSError:
-            pass
+            crc_errors = 0
+
+        except Exception as e:
+            await print_mqtt(client, MUST_PREFIX, { 'error': str(e) })
+            if str(e) == 'invalid response CRC':
+                crc_errors += 1
+                if crc_errors > 10:
+                    machine.reset()
 
         await asyncio.sleep(MUST_INTERVAL)
 
 async def read_pylontech(client):
     while True:
         for x in range(2, 2 + PYLONTECH_BATT):
+            prefix = '{}/{}'.format(PYLONTECH_PREFIX, x)
             try:
                 values = pylontech.get_values(x)
-                await print_mqtt(
-                    client,
-                    '{}/{}'.format(PYLONTECH_PREFIX, x),
-                    values)
-            except ValueError:
-                pass
-            except AssertionError:
+                await print_mqtt(client, prefix, values)
+            except Exception as e:
+                await print_mqtt(client, prefix, { 'error': str(e) })
                 pass
 
         await asyncio.sleep(PYLONTECH_INTERVAL)
@@ -72,8 +86,6 @@ client = MQTTClient(config)
 while True:
     try:
         asyncio.run(main(client))
-    except OSError:
-        print("Can't connect")
-
-
-
+    except Exception as e:
+        log(ERROR_FILE, e)
+        pass

@@ -17,6 +17,8 @@ MQTT_HOST='192.168.42.1'
 WIFI_SSID='wifi'
 WIFI_PASSWORD='password'
 
+ERROR_FILE='errors.txt'
+
 try:
     from .local_settings import *
 except ImportError:
