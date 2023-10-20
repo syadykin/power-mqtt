@@ -1,8 +1,9 @@
 import machine
 import time
+import sys
 
 # sleep delay is necessary for correct init
-time.sleep(5)
+time.sleep(2)
 
 from machine import Pin
 
@@ -83,9 +84,16 @@ async def main(client):
         await asyncio.sleep(600)
 
 client = MQTTClient(config)
+
 while True:
     try:
-        asyncio.run(main(client))
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main(client))
+    except OSError:
+        pass
     except Exception as e:
         log(ERROR_FILE, e)
+        sys.print_exception(e)
+        time.sleep(2)
         pass
+
