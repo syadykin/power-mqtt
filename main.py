@@ -7,7 +7,7 @@ time.sleep(2)
 
 from machine import Pin
 
-from mqtt_async import MQTTClient, config
+from mqtt_async import MQTTClient, config, MQTTMessage
 import uasyncio as asyncio
 
 from must import Must
@@ -15,10 +15,16 @@ from pylontech import Pylontech
 
 from settings import *
 
+async def alive(client):
+    await client.publish(AVAILABILITY, "online", True, 1)
+
 config['server'] = MQTT_HOST
 config['ssid'] = WIFI_SSID
 config['wifi_pw'] = WIFI_PASSWORD
 config["queue_len"] = 1
+config["connect_coro"] = alive
+config["keepalive"] = KEEPALIVE
+config["will"] = MQTTMessage(AVAILABILITY, "offline", True, 1)
 
 def log(file, e):
     err = open(file, 'a')
@@ -67,6 +73,9 @@ async def read_pylontech(client):
             try:
                 values = pylontech.get_values(x)
                 await print_mqtt(client, prefix, values)
+            except AssertionError as e:
+                await print_mqtt(client, prefix, { 'error': "no data received from slave" })
+                pass
             except Exception as e:
                 await print_mqtt(client, prefix, { 'error': str(e) })
                 pass
