@@ -34,6 +34,7 @@ def log(file, e):
 
 
 pylontech = Pylontech(
+    baudrate=9600,
     uart_id=PYLONTECH_UART,
     pins=[Pin(PYLONTECH_TX), Pin(PYLONTECH_RX)])
 must = Must(
