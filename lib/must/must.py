@@ -21,22 +21,39 @@ class Must:
             register_qty=74)
 
         return {
+            # 25201
             'WorkState': ['PowerOn', 'SelfTest', 'OffGrid', 'Grid-Tie', 'ByPass', 'Stop'][info[0]],
+            # 25205
             'BatteryVoltage': info[4] / 10,
+            # 25206
             'InverterVoltage': info[5] / 10,
+            # 25207
             'GridVoltage': info[6] / 10,
+            # 25210
             'InverterCurrent': info[9] / 10,
+            # 25211
             'GridCurrent': info[10] / 10,
+            # 25213
             'InverterPower': info[12],
+            # 25214
             'GridPower': info[13],
+            # 25215
             'LoadPower': info[14],
+            # 25216
             'Load': info[15] / 100,
+            # 25225
             'InverterFrequency': info[24] / 100,
+            # 25226
             'GridFrequency': info[25] / 100,
+            # 25233
             'ACRadiatorTemperature': info[32],
+            # 25234
             'TransformerTemperature': info[33],
+            # 25235
             'DCRadiatorTemperature': info[34],
+            # 25273
             'BatteryPower': info[72],
+            # 25274
             'BatteryCurrent': info[73],
         }
 
